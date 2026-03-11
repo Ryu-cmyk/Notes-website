@@ -38,8 +38,8 @@ class User(AbstractUser):
     phone_number = models.CharField(
         _('phone number'),
         max_length=15,
-        blank=True,
-        null=True,
+        null= True,
+        blank= True,
         unique=True,
         help_text=_('Enter phone number with country code e.g. +9779800000000')
     )

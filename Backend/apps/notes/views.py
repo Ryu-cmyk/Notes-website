@@ -28,9 +28,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# ─────────────────────────────────────────────
+
 # Program
-# ─────────────────────────────────────────────
+
 
 class ProgramViewSet(viewsets.ModelViewSet):
     """
@@ -63,9 +63,9 @@ class ProgramViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-# ─────────────────────────────────────────────
+
 # Semester
-# ─────────────────────────────────────────────
+
 
 class SemesterViewSet(viewsets.ModelViewSet):
     """
@@ -125,9 +125,9 @@ class SemesterViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-# ─────────────────────────────────────────────
+
 # Subject
-# ─────────────────────────────────────────────
+
 
 class SubjectViewSet(viewsets.ModelViewSet):
     """
@@ -174,9 +174,9 @@ class SubjectViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-# ─────────────────────────────────────────────
+
 # Note
-# ─────────────────────────────────────────────
+
 
 class NoteViewSet(viewsets.ModelViewSet):
     """
@@ -242,9 +242,8 @@ class NoteViewSet(viewsets.ModelViewSet):
         return Response(self.get_serializer(notes, many=True).data)
 
 
-# ─────────────────────────────────────────────
 # Past Year Paper
-# ─────────────────────────────────────────────
+
 
 class PastYearPaperViewSet(viewsets.ModelViewSet):
     """
@@ -321,9 +320,9 @@ class PastYearPaperViewSet(viewsets.ModelViewSet):
         return Response(self.get_serializer(papers, many=True).data)
 
 
-# ─────────────────────────────────────────────
+
 # Past Year Paper File (individual pages)
-# ─────────────────────────────────────────────
+
 
 class PastYearPaperFileViewSet(viewsets.ModelViewSet):
     """
@@ -356,9 +355,9 @@ class PastYearPaperFileViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Failed to download file'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# ─────────────────────────────────────────────
+
 # Past Year Paper Solution File
-# ─────────────────────────────────────────────
+
 
 class PastYearPaperSolutionFileViewSet(viewsets.ModelViewSet):
     """
