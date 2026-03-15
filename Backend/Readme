@@ -22,7 +22,7 @@ venv\Scripts\Activate.ps1
 source venv/bin/activate
 After activation, you should see (venv) at the start of your terminal prompt.
 4. Install dependencies
-If your project has a requirements.txt, run:
+
 
 pip install -r requirements.txt
 This will install Django and any other libraries your project needs.
