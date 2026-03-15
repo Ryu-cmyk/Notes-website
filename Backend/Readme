@@ -1,0 +1,31 @@
+Setup and Run Django Project
+1. Clone the repository
+
+git clone https://github.com/your-username/your-repo.git
+cd your-repo
+2. Create a virtual environment
+
+# Windows
+python -m venv venv
+
+# Linux / Mac
+python3 -m venv venv
+3. Activate the virtual environment
+
+# Windows (Command Prompt)
+venv\Scripts\activate
+
+# Windows (PowerShell)
+venv\Scripts\Activate.ps1
+
+# Linux / Mac
+source venv/bin/activate
+After activation, you should see (venv) at the start of your terminal prompt.
+4. Install dependencies
+If your project has a requirements.txt, run:
+
+pip install -r requirements.txt
+This will install Django and any other libraries your project needs.
+5. Run the Django server
+
+python manage.py runserver
