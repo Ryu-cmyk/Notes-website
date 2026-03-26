@@ -21,6 +21,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     """User registration serializer"""
     password = serializers.CharField(write_only=True, min_length=8, style={'input_type': 'password'})
     password2 = serializers.CharField(write_only=True, min_length=8, style={'input_type': 'password'})
+    phone_number = serializers.CharField(required=True)
 
     class Meta:
         model = User

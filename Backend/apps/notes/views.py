@@ -84,8 +84,8 @@ class SemesterViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Semester.objects.filter(is_active=True).select_related('program').annotate(
-            subjects_count=Count('subjects', filter=Q(subjects__is_active=True)),
-            notes_count=Count(
+            total_subjects_count=Count('subjects', filter=Q(subjects__is_active=True)),
+            total_notes_count=Count(
                 'subjects__notes',
                 filter=Q(subjects__is_active=True, subjects__notes__is_active=True)
             )
@@ -148,8 +148,8 @@ class SubjectViewSet(viewsets.ModelViewSet):
         return Subject.objects.filter(is_active=True).select_related(
             'semester', 'semester__program'
         ).annotate(
-            notes_count=Count('notes', filter=Q(notes__is_active=True)),
-            past_year_papers_count=Count('past_year_papers', filter=Q(past_year_papers__is_active=True))
+            total_notes_count=Count('notes', filter=Q(notes__is_active=True)),
+            total_past_year_papers_count=Count('past_year_papers', filter=Q(past_year_papers__is_active=True))
         )
 
     def get_serializer_class(self):

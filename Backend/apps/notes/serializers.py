@@ -8,9 +8,6 @@ from .models import (
 User = get_user_model()
 
 
-# ─────────────────────────────────────────────
-# User
-# ─────────────────────────────────────────────
 
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(source='get_full_name', read_only=True)
@@ -39,9 +36,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return User.objects.create_user(**validated_data)
 
 
-# ─────────────────────────────────────────────
-# Note
-# ─────────────────────────────────────────────
+
 
 class NoteListSerializer(serializers.ModelSerializer):
     subject_name = serializers.CharField(source='subject.name', read_only=True)
@@ -116,9 +111,6 @@ class NoteDetailSerializer(serializers.ModelSerializer):
         return {'id': program.id, 'name': program.name, 'code': program.code}
 
 
-# ─────────────────────────────────────────────
-# Past Year Paper Files
-# ─────────────────────────────────────────────
 
 class PastYearPaperFileSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
@@ -192,12 +184,6 @@ class PastYearPaperSolutionFileSerializer(serializers.ModelSerializer):
         if request:
             return request.build_absolute_uri(f'/api/past-year-paper-solutions/{obj.id}/download/')
         return None
-
-
-# ─────────────────────────────────────────────
-# Past Year Paper
-# ─────────────────────────────────────────────
-
 class PastYearPaperListSerializer(serializers.ModelSerializer):
     subject_name = serializers.CharField(source='subject.name', read_only=True)
     subject_code = serializers.CharField(source='subject.code', read_only=True)
@@ -206,6 +192,8 @@ class PastYearPaperListSerializer(serializers.ModelSerializer):
     uploaded_by_name = serializers.CharField(source='uploaded_by.get_full_name', read_only=True)
     file_size_display = serializers.CharField(source='get_file_size_display', read_only=True)
     pages_count = serializers.IntegerField(read_only=True)
+    paper_files = PastYearPaperFileSerializer(many=True, read_only=True)
+    solution_files = PastYearPaperSolutionFileSerializer(many=True, read_only=True)
 
     class Meta:
         model = PastYearPaper
@@ -213,11 +201,11 @@ class PastYearPaperListSerializer(serializers.ModelSerializer):
             'id', 'title', 'description', 'year', 'file_type',
             'file_size', 'file_size_display', 'download_count',
             'has_solution', 'pages_count',
+            'paper_files', 'solution_files',
             'subject', 'subject_name', 'subject_code',
             'semester_number', 'program_code',
             'uploaded_by_name', 'created_at', 'updated_at'
         ]
-
 
 class PastYearPaperDetailSerializer(serializers.ModelSerializer):
     subject_info = serializers.SerializerMethodField()
@@ -268,9 +256,7 @@ class PastYearPaperDetailSerializer(serializers.ModelSerializer):
         return {'id': program.id, 'name': program.name, 'code': program.code}
 
 
-# ─────────────────────────────────────────────
-# Subject
-# ─────────────────────────────────────────────
+
 
 class SubjectListSerializer(serializers.ModelSerializer):
     semester_name = serializers.CharField(source='semester.name', read_only=True)
@@ -293,8 +279,8 @@ class SubjectDetailSerializer(serializers.ModelSerializer):
     semester_name = serializers.CharField(source='semester.name', read_only=True)
     semester_number = serializers.IntegerField(source='semester.number', read_only=True)
     program_code = serializers.CharField(source='semester.program.code', read_only=True)
-    notes_count = serializers.IntegerField(read_only=True)
-    past_year_papers_count = serializers.IntegerField(read_only=True)
+    notes_count = serializers.IntegerField(source = 'total_notes',read_only=True)
+    past_year_papers_count = serializers.IntegerField(source = 'total_past_year_papers',read_only=True)
     notes = NoteListSerializer(many=True, read_only=True)
     past_year_papers = PastYearPaperListSerializer(many=True, read_only=True)
 
@@ -309,15 +295,13 @@ class SubjectDetailSerializer(serializers.ModelSerializer):
         ]
 
 
-# ─────────────────────────────────────────────
-# Semester
-# ─────────────────────────────────────────────
+
 
 class SemesterListSerializer(serializers.ModelSerializer):
     program_name = serializers.CharField(source='program.name', read_only=True)
     program_code = serializers.CharField(source='program.code', read_only=True)
-    subjects_count = serializers.IntegerField(read_only=True)
-    notes_count = serializers.IntegerField(read_only=True)
+    subjects_count = serializers.IntegerField(source='total_subjects',read_only=True)
+    notes_count = serializers.IntegerField(source = 'total_notes',read_only=True)
 
     class Meta:
         model = Semester
@@ -346,9 +330,6 @@ class SemesterDetailSerializer(serializers.ModelSerializer):
         ]
 
 
-# ─────────────────────────────────────────────
-# Program
-# ─────────────────────────────────────────────
 
 class ProgramListSerializer(serializers.ModelSerializer):
     semesters_count = serializers.IntegerField(read_only=True)
