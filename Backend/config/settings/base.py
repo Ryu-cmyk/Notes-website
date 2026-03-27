@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -48,6 +49,10 @@ INSTALLED_APPS = [
     # Local apps
     'apps.accounts',
     'apps.notes',
+    #For admin panel
+      # ← ADD THIS FIRST
+
+    
 ]
 
 MIDDLEWARE = [
@@ -265,3 +270,111 @@ LOGGING = {
     },
 }
 
+JAZZMIN_SETTINGS = {
+    # Site identity
+    "site_title": "Notes Portal Admin",
+    "site_header": "Notes Portal",
+    "site_brand": "Notes Portal",
+    "welcome_sign": "Welcome to Notes Portal Admin",
+    "copyright": "Notes Portal",
+
+    # Top menu
+   "topmenu_links": [
+    {"name": "Home", "url": "admin:index"},
+    {"name": "View Site", "url": "/", "new_window": True},
+    {"model": "accounts.User"},
+],
+
+"usermenu_links": [
+    {"model": "accounts.User"},
+],
+    # Sidebar icons — matched exactly to your models
+    "icons": {
+        # Accounts app
+        "accounts": "fas fa-users",
+        "accounts.User": "fas fa-user-circle",
+
+        # Notes app
+        "notes": "fas fa-book-open",
+        "notes.Program": "fas fa-graduation-cap",
+        "notes.Semester": "fas fa-calendar-alt",
+        "notes.Subject": "fas fa-book",
+        "notes.Note": "fas fa-sticky-note",
+        "notes.PastYearPaper": "fas fa-file-alt",
+        "notes.PastYearPaperFile": "fas fa-file",
+        "notes.PastYearPaperSolutionFile": "fas fa-check-circle",
+
+        # Auth
+        "auth.Group": "fas fa-users-cog",
+    },
+
+    "default_icon_parents": "fas fa-folder",
+    "default_icon_children": "fas fa-circle",
+
+    # Sidebar ordering — accounts first, then notes hierarchy
+    "order_with_respect_to": [
+        "accounts",
+        "notes",
+        "notes.Program",
+        "notes.Semester",
+        "notes.Subject",
+        "notes.Note",
+        "notes.PastYearPaper",
+        "notes.PastYearPaperFile",
+        "notes.PastYearPaperSolutionFile",
+    ],
+
+    # UI options
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "related_modal_active": True,
+
+    # Search bar searches across these models
+    "search_model": ["accounts.User", "notes.Note", "notes.Subject"],
+
+    # Custom links in sidebar under each app
+    "custom_links": {
+        "notes": [{
+            "name": "Programs Overview",
+            "url": "admin:notes_program_changelist",
+            "icon": "fas fa-sitemap",
+        }]
+    },
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+
+    # Color theme — deep blue, suits an academic/notes site
+    "brand_colour": "navbar-primary",
+    "accent": "accent-primary",
+    "navbar": "navbar-dark",
+    "no_navbar_border": True,
+    "navbar_fixed": True,
+
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": True,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_flat_style": False,
+
+    # Bootstrap theme — clean and professional
+    "theme": "flatly",
+    "dark_mode_theme": "darkly",
+
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-outline-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success",
+    },
+}

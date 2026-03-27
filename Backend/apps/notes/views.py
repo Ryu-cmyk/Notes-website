@@ -28,9 +28,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# ─────────────────────────────────────────────
+
 # Program
-# ─────────────────────────────────────────────
+
 
 class ProgramViewSet(viewsets.ModelViewSet):
     """
@@ -63,9 +63,9 @@ class ProgramViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-# ─────────────────────────────────────────────
+
 # Semester
-# ─────────────────────────────────────────────
+
 
 class SemesterViewSet(viewsets.ModelViewSet):
     """
@@ -84,8 +84,8 @@ class SemesterViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Semester.objects.filter(is_active=True).select_related('program').annotate(
-            subjects_count=Count('subjects', filter=Q(subjects__is_active=True)),
-            notes_count=Count(
+            total_subjects_count=Count('subjects', filter=Q(subjects__is_active=True)),
+            total_notes_count=Count(
                 'subjects__notes',
                 filter=Q(subjects__is_active=True, subjects__notes__is_active=True)
             )
@@ -125,9 +125,9 @@ class SemesterViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-# ─────────────────────────────────────────────
+
 # Subject
-# ─────────────────────────────────────────────
+
 
 class SubjectViewSet(viewsets.ModelViewSet):
     """
@@ -148,8 +148,8 @@ class SubjectViewSet(viewsets.ModelViewSet):
         return Subject.objects.filter(is_active=True).select_related(
             'semester', 'semester__program'
         ).annotate(
-            notes_count=Count('notes', filter=Q(notes__is_active=True)),
-            past_year_papers_count=Count('past_year_papers', filter=Q(past_year_papers__is_active=True))
+            total_notes_count=Count('notes', filter=Q(notes__is_active=True)),
+            total_past_year_papers_count=Count('past_year_papers', filter=Q(past_year_papers__is_active=True))
         )
 
     def get_serializer_class(self):
@@ -174,9 +174,9 @@ class SubjectViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-# ─────────────────────────────────────────────
+
 # Note
-# ─────────────────────────────────────────────
+
 
 class NoteViewSet(viewsets.ModelViewSet):
     """
@@ -242,9 +242,8 @@ class NoteViewSet(viewsets.ModelViewSet):
         return Response(self.get_serializer(notes, many=True).data)
 
 
-# ─────────────────────────────────────────────
 # Past Year Paper
-# ─────────────────────────────────────────────
+
 
 class PastYearPaperViewSet(viewsets.ModelViewSet):
     """
@@ -321,9 +320,9 @@ class PastYearPaperViewSet(viewsets.ModelViewSet):
         return Response(self.get_serializer(papers, many=True).data)
 
 
-# ─────────────────────────────────────────────
+
 # Past Year Paper File (individual pages)
-# ─────────────────────────────────────────────
+
 
 class PastYearPaperFileViewSet(viewsets.ModelViewSet):
     """
@@ -356,9 +355,9 @@ class PastYearPaperFileViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Failed to download file'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# ─────────────────────────────────────────────
+
 # Past Year Paper Solution File
-# ─────────────────────────────────────────────
+
 
 class PastYearPaperSolutionFileViewSet(viewsets.ModelViewSet):
     """

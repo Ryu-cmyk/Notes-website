@@ -6,9 +6,6 @@ from .models import (
 )
 
 
-# ─────────────────────────────────────────────
-# Program
-# ─────────────────────────────────────────────
 
 @admin.register(Program)
 class ProgramAdmin(admin.ModelAdmin):
@@ -30,9 +27,6 @@ class ProgramAdmin(admin.ModelAdmin):
     notes_count.short_description = 'Notes'
 
 
-# ─────────────────────────────────────────────
-# Semester
-# ─────────────────────────────────────────────
 
 @admin.register(Semester)
 class SemesterAdmin(admin.ModelAdmin):
@@ -50,9 +44,6 @@ class SemesterAdmin(admin.ModelAdmin):
     notes_count.short_description = 'Notes'
 
 
-# ─────────────────────────────────────────────
-# Subject
-# ─────────────────────────────────────────────
 
 @admin.register(Subject)
 class SubjectAdmin(admin.ModelAdmin):
@@ -74,9 +65,7 @@ class SubjectAdmin(admin.ModelAdmin):
     past_year_papers_count.short_description = 'Past Papers'
 
 
-# ─────────────────────────────────────────────
-# Note
-# ─────────────────────────────────────────────
+
 
 @admin.register(Note)
 class NoteAdmin(admin.ModelAdmin):
@@ -118,9 +107,7 @@ class NoteAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
-# ─────────────────────────────────────────────
-# Past Year Paper inlines
-# ─────────────────────────────────────────────
+
 
 class PastYearPaperFileInline(admin.TabularInline):
     model = PastYearPaperFile
@@ -138,9 +125,6 @@ class PastYearPaperSolutionFileInline(admin.TabularInline):
     ordering = ['page_number']
 
 
-# ─────────────────────────────────────────────
-# Past Year Paper
-# ─────────────────────────────────────────────
 
 @admin.register(PastYearPaper)
 class PastYearPaperAdmin(admin.ModelAdmin):
@@ -195,9 +179,7 @@ class PastYearPaperAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
-# ─────────────────────────────────────────────
-# Past Year Paper Files
-# ─────────────────────────────────────────────
+
 
 @admin.register(PastYearPaperFile)
 class PastYearPaperFileAdmin(admin.ModelAdmin):
