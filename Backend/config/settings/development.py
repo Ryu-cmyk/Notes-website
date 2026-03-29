@@ -25,6 +25,10 @@ REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = [
 
 # CORS - Allow all in development
 CORS_ALLOW_ALL_ORIGINS = True
+CSRF_TRUSTED_ORIGINS = [
+    'https://ideal-rebirth-production-0c66.up.railway.app',
+    'https://notes-website-8age.vercel.app',
+]
 
 # Email backend for development
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
