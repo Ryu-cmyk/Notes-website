@@ -214,7 +214,7 @@ SIMPLE_JWT = {
 # CORS Settings
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
-    default= 'https://notes-website-8age-q1rklvrej-ryu-cmyks-projects.vercel.app/' #'http://localhost:3000'
+    default= 'https://notes-website-8age-q1rklvrej-ryu-cmyks-projects.vercel.app' #'http://localhost:3000'
     
 ).split(',')
 CORS_ALLOW_CREDENTIALS = True
