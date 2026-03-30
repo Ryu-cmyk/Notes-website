@@ -4,7 +4,7 @@ from django.conf import settings
 import os
 
 
-ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt', 'zip', 'jpg', 'jpeg','png']
+ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt', 'zip', 'jpg', 'jpeg', 'png']
 
 
 class TimeStampedModel(models.Model):
@@ -41,24 +41,15 @@ class Program(TimeStampedModel):
 
     @property
     def subjects_count(self):
-        return Subject.objects.filter(
-            semester__program=self,
-            is_active=True
-        ).count()
+        return Subject.objects.filter(semester__program=self, is_active=True).count()
 
     @property
     def notes_count(self):
-        return Note.objects.filter(
-            subject__semester__program=self,
-            is_active=True
-        ).count()
+        return Note.objects.filter(subject__semester__program=self, is_active=True).count()
 
     @property
     def past_year_papers_count(self):
-        return PastYearPaper.objects.filter(
-            subject__semester__program=self,
-            is_active=True
-        ).count()
+        return PastYearPaper.objects.filter(subject__semester__program=self, is_active=True).count()
 
 
 class Semester(TimeStampedModel):
@@ -97,17 +88,11 @@ class Semester(TimeStampedModel):
 
     @property
     def notes_count(self):
-        return Note.objects.filter(
-            subject__semester=self,
-            is_active=True
-        ).count()
+        return Note.objects.filter(subject__semester=self, is_active=True).count()
 
     @property
     def past_year_papers_count(self):
-        return PastYearPaper.objects.filter(
-            subject__semester=self,
-            is_active=True
-        ).count()
+        return PastYearPaper.objects.filter(subject__semester=self, is_active=True).count()
 
 
 class Subject(TimeStampedModel):
@@ -179,7 +164,7 @@ class FileBaseModel(TimeStampedModel):
             return 'doc'
         elif ext in ['.ppt', '.pptx']:
             return 'ppt'
-        elif ext in ['.jpg', '.jpeg','.png']:
+        elif ext in ['.jpg', '.jpeg', '.png']:
             return 'image'
         return 'other'
 
@@ -242,8 +227,8 @@ class Note(FileBaseModel):
 class PastYearPaper(FileBaseModel):
     """
     Past Year Question Paper model.
-    A single paper can have multiple files (pages) via PastYearPaperFile.
-    Solution files are also supported as multiple files via PastYearPaperSolutionFile.
+    Supports multiple page files via PastYearPaperFile
+    and multiple solution files via PastYearPaperSolutionFile.
     """
     subject = models.ForeignKey(
         Subject,
@@ -256,34 +241,25 @@ class PastYearPaper(FileBaseModel):
         null=True,
         related_name='uploaded_past_year_papers'
     )
-
-    year = models.PositiveIntegerField(
-        help_text="Year the exam was held (e.g. 2022)"
+    year = models.CharField(
+        max_length=50,
+        help_text="Year the exam was held (e.g. 2080, Back 2079, Chance 2078/79)"
     )
     has_solution = models.BooleanField(default=False)
-
-    # file field is not used here since files are stored in PastYearPaperFile
-    # but we keep it from FileBaseModel as null for compatibility
     file = models.FileField(
         upload_to='past_year_papers/%Y/%m/',
         validators=[FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS)],
         blank=True,
         null=True,
-        help_text="Single file upload (use PastYearPaperFile for multiple pages)"
+        help_text="Single file upload (use Page Files section for multiple pages)"
     )
 
     class Meta:
-        ordering = ['-year', '-created_at']
+        ordering = ['-created_at']
         verbose_name = 'Past Year Paper'
         verbose_name_plural = 'Past Year Papers'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['subject', 'year'],
-                name='unique_paper_per_subject_per_year'
-            )
-        ]
         indexes = [
-            models.Index(fields=['subject', '-year']),
+            models.Index(fields=['subject', 'year']),
             models.Index(fields=['year']),
             models.Index(fields=['is_active']),
         ]
@@ -300,17 +276,17 @@ class PastYearPaper(FileBaseModel):
         return self.solution_files.count()
 
     def save(self, *args, **kwargs):
-        # Auto set has_solution if solution files exist
-        if self.pk and self.solution_files.exists():
-            self.has_solution = True
+        if self.file:
+            self.file_size = self.file.size
+            self.file_type = self._detect_file_type(self.file.name)
         super().save(*args, **kwargs)
+        # Update has_solution after save so related files are accessible
+        if self.pk and self.solution_files.exists():
+            PastYearPaper.objects.filter(pk=self.pk).update(has_solution=True)
 
 
 class PastYearPaperFile(TimeStampedModel):
-    """
-    Individual file/page for a Past Year Paper.
-    Allows uploading multiple files (e.g. scanned jpg pages) per paper.
-    """
+    """Individual file/page for a Past Year Paper"""
     paper = models.ForeignKey(
         PastYearPaper,
         on_delete=models.CASCADE,
@@ -346,10 +322,7 @@ class PastYearPaperFile(TimeStampedModel):
 
 
 class PastYearPaperSolutionFile(TimeStampedModel):
-    """
-    Individual solution file/page for a Past Year Paper.
-    Allows uploading multiple solution files per paper.
-    """
+    """Individual solution file/page for a Past Year Paper"""
     paper = models.ForeignKey(
         PastYearPaper,
         on_delete=models.CASCADE,

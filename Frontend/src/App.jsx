@@ -12,6 +12,7 @@ import Notes from "./pages/Notes.jsx";
 import PastYearPapers from "./pages/PastYearPapers.jsx";
 import Profile from "./pages/Profile.jsx";
 import Contact from "./pages/Contact.jsx";
+import PDFViewer from "./pages/PDFViewer.jsx";
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated } = useAuthStore();
@@ -24,6 +25,7 @@ export default function App() {
       <Navbar />
       <main>
         <Routes>
+          <Route path="/view" element={<PDFViewer />} />
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

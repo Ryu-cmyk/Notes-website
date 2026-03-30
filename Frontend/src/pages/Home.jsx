@@ -2,10 +2,21 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getStats, getPrograms } from "../services/api";
 import { BookOpen, FileText, GraduationCap, Download, ArrowRight } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const { data: stats } = useQuery({ queryKey: ["stats"], queryFn: () => getStats().then(r => r.data) });
   const { data: programs } = useQuery({ queryKey: ["programs"], queryFn: () => getPrograms().then(r => r.data) });
+
+const [isMobile, setIsMobile] = useState(false);
+
+useEffect(() => {
+  const checkScreen = () => setIsMobile(window.innerWidth < 768);
+  checkScreen(); // run once
+
+  window.addEventListener("resize", checkScreen);
+  return () => window.removeEventListener("resize", checkScreen);
+}, []);
 
   const statCards = [
   { label: "Programs", value: stats?.total_programs ?? 0, icon: GraduationCap, color: "var(--primary)" },
@@ -45,7 +56,9 @@ export default function Home() {
       {/* Stats */}
       <section style={{ background: "white", padding: "2.5rem 0", borderBottom: "1px solid var(--gray-200)" }}>
         <div className="container">
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1.5rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile
+  ? "repeat(2, 1fr)" 
+  : "repeat(auto-fit, minmax(180px, 1fr))", gap: "1.5rem" }}>
             {statCards.map(({ label, value, icon: Icon, color }) => (
               <div key={label} style={{ textAlign: "center", padding: "1.25rem" }}>
                 <div style={{ display: "inline-flex", padding: "0.75rem", background: `${color}18`, borderRadius: "12px", marginBottom: "0.75rem" }}>
