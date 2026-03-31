@@ -26,6 +26,11 @@ export default function PastYearPapers() {
   const setTab = (paperId, tab) => setActiveTab(prev => ({ ...prev, [paperId]: tab }));
 
   const handleDownload = async (url, filename, view = false) => {
+    if (!url) {
+      toast.error("File not available");
+      return;
+    }
+
     if (!isAuthenticated && !view) {
       toast.error("Please login to download files");
       return;
@@ -33,11 +38,13 @@ export default function PastYearPapers() {
 
     try {
       if (view) {
+        // Pass Cloudinary URL directly to viewer
         const viewerUrl = `/view?url=${encodeURIComponent(url)}&name=${encodeURIComponent(filename)}`;
         window.open(viewerUrl, "_blank");
         return;
       }
 
+      // Download — fetch with auth token
       const token = localStorage.getItem("access_token");
       const response = await fetch(url, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -111,6 +118,9 @@ export default function PastYearPapers() {
                 ? "past-year-paper-files"
                 : "past-year-paper-solutions";
 
+              // Get direct Cloudinary URL for viewing
+              const mainViewUrl = paper.file || paper.paper_files?.[0]?.file;
+
               return (
                 <div key={paper.id} className="card" style={{ padding: "1.25rem" }}>
 
@@ -142,16 +152,20 @@ export default function PastYearPapers() {
 
                     {/* Main buttons */}
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flexShrink: 0 }}>
+                      {/* View — uses direct Cloudinary URL */}
                       <button
                         onClick={() => handleDownload(
-                          `${API_URL}/api/past-year-papers/${paper.id}/view/`,
+                          mainViewUrl,
                           `${paper.title}-${paper.year}`, true
                         )}
                         className="btn btn-sm"
                         style={{ background: "var(--gray-100)", color: "var(--gray-700)", border: "none" }}
+                        disabled={!mainViewUrl}
                       >
                         <Eye size={13} /> View
                       </button>
+
+                      {/* Download — uses Railway auth endpoint */}
                       <button
                         onClick={() => handleDownload(
                           `${API_URL}/api/past-year-papers/${paper.id}/download/`,
@@ -233,10 +247,11 @@ export default function PastYearPapers() {
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
                           {files.map(file => (
                             <div key={file.id} style={{ display: "flex", gap: "0.25rem" }}>
-                              {/* View button → /view/ */}
+
+                              {/* View — direct Cloudinary URL */}
                               <button
                                 onClick={() => handleDownload(
-                                  `${API_URL}/api/${fileEndpoint}/${file.id}/view/`,
+                                  file.file,
                                   `${filePrefix}-${file.page_number}`, true
                                 )}
                                 className="btn btn-sm"
@@ -250,7 +265,7 @@ export default function PastYearPapers() {
                                 {tab === "paper" ? `Pg ${file.page_number}` : `Sol ${file.page_number}`}
                               </button>
 
-                              {/* Download button → /download/ */}
+                              {/* Download — Railway auth endpoint */}
                               <button
                                 onClick={() => handleDownload(
                                   `${API_URL}/api/${fileEndpoint}/${file.id}/download/`,
