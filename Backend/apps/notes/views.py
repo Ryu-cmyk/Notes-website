@@ -3,6 +3,7 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.http import FileResponse
+from django.shortcuts import redirect
 from django.db.models import Count, Q, Sum
 
 from django_filters.rest_framework import DjangoFilterBackend
@@ -166,15 +167,12 @@ class NoteViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], permission_classes=[AllowAny])
     def view(self, request, pk=None):
-        """View note file - public"""
+        """View note file - public, redirects to Cloudinary URL"""
         try:
             note = self.get_object()
             if not note.file:
                 return Response({'error': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
-            file_handle = note.file.open('rb')
-            response = FileResponse(file_handle, as_attachment=False)
-            response['Content-Disposition'] = f'inline; filename="{note.file.name.split("/")[-1]}"'
-            return response
+            return redirect(note.file.url)
         except Exception as e:
             logger.error(f"Error viewing note {pk}: {str(e)}")
             return Response({'error': 'Failed to load file'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -188,10 +186,7 @@ class NoteViewSet(viewsets.ModelViewSet):
                 return Response({'error': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
             note.increment_download_count()
             logger.info(f"User {request.user.email} downloaded note {note.id}")
-            file_handle = note.file.open('rb')
-            response = FileResponse(file_handle, as_attachment=True)
-            response['Content-Disposition'] = f'attachment; filename="{note.file.name.split("/")[-1]}"'
-            return response
+            return redirect(note.file.url)
         except Exception as e:
             logger.error(f"Error downloading note {pk}: {str(e)}")
             return Response({'error': 'Failed to download file'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -234,43 +229,32 @@ class PastYearPaperViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], permission_classes=[AllowAny])
     def view(self, request, pk=None):
-        """View paper file - public"""
+        """View paper file - public, redirects to Cloudinary URL"""
         try:
             paper = self.get_object()
             if paper.file:
-                file_handle = paper.file.open('rb')
-            else:
-                first_file = paper.paper_files.first()
-                if not first_file:
-                    return Response({'error': 'No file found'}, status=status.HTTP_404_NOT_FOUND)
-                file_handle = first_file.file.open('rb')
-            response = FileResponse(file_handle, as_attachment=False)
-            response['Content-Disposition'] = f'inline; filename="paper"'
-            return response
+                return redirect(paper.file.url)
+            first_file = paper.paper_files.first()
+            if not first_file:
+                return Response({'error': 'No file found'}, status=status.HTTP_404_NOT_FOUND)
+            return redirect(first_file.file.url)
         except Exception as e:
             logger.error(f"Error viewing past year paper {pk}: {str(e)}")
             return Response({'error': 'Failed to load file'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
     def download(self, request, pk=None):
-        """Download paper - requires authentication"""
+        """Download paper - requires authentication, redirects to Cloudinary URL"""
         try:
             paper = self.get_object()
             paper_files = paper.paper_files.all().order_by('page_number')
             if not paper_files.exists() and not paper.file:
-                return Response({'error': 'No files found for this paper'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'error': 'No files found'}, status=status.HTTP_404_NOT_FOUND)
             paper.increment_download_count()
             logger.info(f"User {request.user.email} downloaded past year paper {paper.id}")
             if paper.file:
-                file_handle = paper.file.open('rb')
-                response = FileResponse(file_handle, as_attachment=True)
-                response['Content-Disposition'] = f'attachment; filename="{paper.file.name.split("/")[-1]}"'
-                return response
-            first_file = paper_files.first()
-            file_handle = first_file.file.open('rb')
-            response = FileResponse(file_handle, as_attachment=True)
-            response['Content-Disposition'] = f'attachment; filename="{first_file.file.name.split("/")[-1]}"'
-            return response
+                return redirect(paper.file.url)
+            return redirect(paper_files.first().file.url)
         except Exception as e:
             logger.error(f"Error downloading past year paper {pk}: {str(e)}")
             return Response({'error': 'Failed to download file'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -303,13 +287,10 @@ class PastYearPaperFileViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], permission_classes=[AllowAny])
     def view(self, request, pk=None):
-        """View a single page file - public"""
+        """View a single page file - public, redirects to Cloudinary URL"""
         try:
             paper_file = self.get_object()
-            file_handle = paper_file.file.open('rb')
-            response = FileResponse(file_handle, as_attachment=False)
-            response['Content-Disposition'] = f'inline; filename="{paper_file.file.name.split("/")[-1]}"'
-            return response
+            return redirect(paper_file.file.url)
         except Exception as e:
             logger.error(f"Error viewing paper file {pk}: {str(e)}")
             return Response({'error': 'Failed to load file'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -319,10 +300,7 @@ class PastYearPaperFileViewSet(viewsets.ModelViewSet):
         """Download a single page file - requires authentication"""
         try:
             paper_file = self.get_object()
-            file_handle = paper_file.file.open('rb')
-            response = FileResponse(file_handle, as_attachment=True)
-            response['Content-Disposition'] = f'attachment; filename="{paper_file.file.name.split("/")[-1]}"'
-            return response
+            return redirect(paper_file.file.url)
         except Exception as e:
             logger.error(f"Error downloading paper file {pk}: {str(e)}")
             return Response({'error': 'Failed to download file'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -343,26 +321,20 @@ class PastYearPaperSolutionFileViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], permission_classes=[AllowAny])
     def view(self, request, pk=None):
-        """View a single solution file - public"""
+        """View a single solution file - public, redirects to Cloudinary URL"""
         try:
             solution_file = self.get_object()
-            file_handle = solution_file.file.open('rb')
-            response = FileResponse(file_handle, as_attachment=False)
-            response['Content-Disposition'] = f'inline; filename="{solution_file.file.name.split("/")[-1]}"'
-            return response
+            return redirect(solution_file.file.url)
         except Exception as e:
             logger.error(f"Error viewing solution file {pk}: {str(e)}")
             return Response({'error': 'Failed to load file'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
     def download(self, request, pk=None):
-        """Download a single solution page file - requires authentication"""
+        """Download a single solution file - requires authentication"""
         try:
             solution_file = self.get_object()
-            file_handle = solution_file.file.open('rb')
-            response = FileResponse(file_handle, as_attachment=True)
-            response['Content-Disposition'] = f'attachment; filename="{solution_file.file.name.split("/")[-1]}"'
-            return response
+            return redirect(solution_file.file.url)
         except Exception as e:
             logger.error(f"Error downloading solution file {pk}: {str(e)}")
             return Response({'error': 'Failed to download file'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
