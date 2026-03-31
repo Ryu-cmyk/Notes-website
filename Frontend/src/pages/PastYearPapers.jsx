@@ -26,7 +26,6 @@ export default function PastYearPapers() {
   const setTab = (paperId, tab) => setActiveTab(prev => ({ ...prev, [paperId]: tab }));
 
   const handleDownload = async (url, filename, view = false) => {
-    // View is free, download requires login
     if (!isAuthenticated && !view) {
       toast.error("Please login to download files");
       return;
@@ -34,13 +33,11 @@ export default function PastYearPapers() {
 
     try {
       if (view) {
-        // Open directly in PDF viewer — no blob needed
         const viewerUrl = `/view?url=${encodeURIComponent(url)}&name=${encodeURIComponent(filename)}`;
         window.open(viewerUrl, "_blank");
         return;
       }
 
-      // Download — fetch with auth token
       const token = localStorage.getItem("access_token");
       const response = await fetch(url, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -111,8 +108,8 @@ export default function PastYearPapers() {
               const files = tab === "paper" ? paper.paper_files : paper.solution_files;
               const filePrefix = tab === "paper" ? "page" : "solution";
               const fileEndpoint = tab === "paper"
-                ? `past-year-paper-files`
-                : `past-year-paper-solutions`;
+                ? "past-year-paper-files"
+                : "past-year-paper-solutions";
 
               return (
                 <div key={paper.id} className="card" style={{ padding: "1.25rem" }}>
@@ -147,7 +144,7 @@ export default function PastYearPapers() {
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flexShrink: 0 }}>
                       <button
                         onClick={() => handleDownload(
-                          `${API_URL}/api/past-year-papers/${paper.id}/download/`,
+                          `${API_URL}/api/past-year-papers/${paper.id}/view/`,
                           `${paper.title}-${paper.year}`, true
                         )}
                         className="btn btn-sm"
@@ -236,9 +233,10 @@ export default function PastYearPapers() {
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
                           {files.map(file => (
                             <div key={file.id} style={{ display: "flex", gap: "0.25rem" }}>
+                              {/* View button → /view/ */}
                               <button
                                 onClick={() => handleDownload(
-                                  `${API_URL}/api/${fileEndpoint}/${file.id}/download/`,
+                                  `${API_URL}/api/${fileEndpoint}/${file.id}/view/`,
                                   `${filePrefix}-${file.page_number}`, true
                                 )}
                                 className="btn btn-sm"
@@ -251,6 +249,8 @@ export default function PastYearPapers() {
                                 <Eye size={12} />
                                 {tab === "paper" ? `Pg ${file.page_number}` : `Sol ${file.page_number}`}
                               </button>
+
+                              {/* Download button → /download/ */}
                               <button
                                 onClick={() => handleDownload(
                                   `${API_URL}/api/${fileEndpoint}/${file.id}/download/`,
