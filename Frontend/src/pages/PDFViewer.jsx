@@ -56,10 +56,9 @@ export default function PDFViewer() {
       </div>
 
       <iframe
-        src={url}
-        title={name}
-        style={{ flex: 1, width: "100%", border: "none" }}
-      />
+  src={`https://docs.google.com/gview?url=${url}&embedded=true`}
+  style={{ width: "100%", height: "100%" }}
+/>
     </div>
   );
 }
