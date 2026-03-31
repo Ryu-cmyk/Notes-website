@@ -50,11 +50,19 @@ INSTALLED_APPS = [
     # Local apps
     'apps.accounts',
     'apps.notes',
-    #For admin panel
-      # ← ADD THIS FIRST
-
-    
+    #for Claudnary storage
+    'cloudinary',
+    'cloudinary_storage',
+   
 ]
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.RawMediaCloudinaryStorage'
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': config('CLOUDINARY_API_KEY'),
+    'API_SECRET': config('CLOUDINARY_API_SECRET'),
+}
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
