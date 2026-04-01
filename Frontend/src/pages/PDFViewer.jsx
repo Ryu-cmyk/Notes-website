@@ -1,10 +1,13 @@
 import { useSearchParams } from "react-router-dom";
-import { Download, ArrowLeft } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 
 export default function PDFViewer() {
   const [searchParams] = useSearchParams();
   const url = searchParams.get("url");
   const name = searchParams.get("name") || "Document";
+
+  // Detect mobile
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   if (!url) {
     return (
@@ -13,6 +16,11 @@ export default function PDFViewer() {
       </div>
     );
   }
+
+  // Use Google Docs viewer for mobile — works better than iframe
+  const viewerSrc = isMobile
+    ? `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`
+    : `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(url)}`;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
@@ -30,11 +38,15 @@ export default function PDFViewer() {
           >
             <ArrowLeft size={14} /> Back
           </button>
-          <span style={{ fontSize: "0.9rem", fontWeight: 500, color: "var(--gray-800)" }}>
+          <span style={{
+            fontSize: "0.9rem", fontWeight: 500, color: "var(--gray-800)",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            maxWidth: "160px"
+          }}>
             {name}
           </span>
         </div>
-        <a
+        
           href={url}
           target="_blank"
           rel="noreferrer"
@@ -45,7 +57,7 @@ export default function PDFViewer() {
       </div>
 
       <iframe
-        src={url}
+        src={viewerSrc}
         title={name}
         style={{ flex: 1, width: "100%", border: "none" }}
       />
