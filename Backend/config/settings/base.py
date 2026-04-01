@@ -37,6 +37,7 @@ AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = 'public-read'
 AWS_QUERYSTRING_AUTH = False
 AWS_S3_REGION_NAME = config('SUPABASE_REGION', default='ap-southeast-1')
+AWS_S3_CUSTOM_DOMAIN = 'evfauchtqgilsnyrrifw.supabase.co/storage/v1/object/public/media'
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
