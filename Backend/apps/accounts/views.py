@@ -22,6 +22,8 @@ def register_user(request):
     serializer = UserRegistrationSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.save()
+        user.is_active = True
+        user.save()
         logger.info(f"New user registered: {user.email}")
         return Response({
             'message': 'User created successfully',
