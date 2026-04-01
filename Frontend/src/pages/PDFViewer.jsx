@@ -1,12 +1,13 @@
-import { useSearchParams } from "react-router-dom";
-import { ArrowLeft, Download } from "lucide-react";
+import { useSearchParams, Link } from "react-router-dom";
+import { ArrowLeft, Download, Lock } from "lucide-react";
+import useAuthStore from "../store/authStore";
 
 export default function PDFViewer() {
   const [searchParams] = useSearchParams();
   const url = searchParams.get("url");
   const name = searchParams.get("name") || "Document";
+  const { isAuthenticated } = useAuthStore();
 
-  // Detect mobile
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   if (!url) {
@@ -17,7 +18,6 @@ export default function PDFViewer() {
     );
   }
 
-  // Use Google Docs viewer for mobile — works better than iframe
   const viewerSrc = isMobile
     ? `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`
     : `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(url)}`;
@@ -46,14 +46,25 @@ export default function PDFViewer() {
             {name}
           </span>
         </div>
-        
-          href={url}
-          target="_blank"
-          rel="noreferrer"
-          className="btn btn-sm btn-primary"
-        >
-          <Download size={14} /> Download
-        </a>
+
+        {isAuthenticated ? (
+          <a
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            className="btn btn-sm btn-primary"
+          >
+            <Download size={14} /> Download
+          </a>
+        ) : (
+          <Link
+            to="/login"
+            className="btn btn-sm"
+            style={{ background: "var(--gray-100)", color: "var(--gray-700)", border: "none" }}
+          >
+            <Lock size={14} /> Login to Download
+          </Link>
+        )}
       </div>
 
       <iframe
