@@ -38,13 +38,11 @@ export default function PastYearPapers() {
 
     try {
       if (view) {
-        // Pass Cloudinary URL directly to viewer
         const viewerUrl = `/view?url=${encodeURIComponent(url)}&name=${encodeURIComponent(filename)}`;
         window.open(viewerUrl, "_blank");
         return;
       }
 
-      // Download — fetch with auth token
       const token = localStorage.getItem("access_token");
       const response = await fetch(url, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -61,6 +59,26 @@ export default function PastYearPapers() {
     } catch {
       toast.error("Failed to load file");
     }
+  };
+
+  const handleSolutionView = (file, filePrefix) => {
+    if (!isAuthenticated) {
+      toast.error("Please login to view solutions");
+      return;
+    }
+    handleDownload(file.file, `${filePrefix}-${file.page_number}`, true);
+  };
+
+  const handleSolutionDownload = (file, fileEndpoint, filePrefix) => {
+    if (!isAuthenticated) {
+      toast.error("Please login to download solutions");
+      return;
+    }
+    handleDownload(
+      `${API_URL}/api/${fileEndpoint}/${file.id}/download/`,
+      `${filePrefix}-${file.page_number}`,
+      false
+    );
   };
 
   return (
@@ -90,11 +108,11 @@ export default function PastYearPapers() {
           }}>
             <Lock size={16} />
             <span>
-              You can view files freely.{" "}
+              You can view papers freely.{" "}
               <Link to="/login" style={{ color: "var(--primary)", fontWeight: 500 }}>
                 Login
               </Link>{" "}
-              to download.
+              to view solutions and download files.
             </span>
           </div>
         )}
@@ -118,7 +136,6 @@ export default function PastYearPapers() {
                 ? "past-year-paper-files"
                 : "past-year-paper-solutions";
 
-              // Get direct Cloudinary URL for viewing
               const mainViewUrl = paper.file || paper.paper_files?.[0]?.file;
 
               return (
@@ -143,7 +160,11 @@ export default function PastYearPapers() {
                       </h3>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
                         <span className="badge badge-blue">{paper.year}</span>
-                        {hasSolution && <span className="badge badge-green">Solution available</span>}
+                        {hasSolution && (
+                          <span className="badge badge-green">
+                            {isAuthenticated ? "Solution available" : "🔒 Solution available"}
+                          </span>
+                        )}
                         <span style={{ fontSize: "0.75rem", color: "var(--gray-400)", display: "flex", alignItems: "center", gap: "0.25rem" }}>
                           <Eye size={12} /> {paper.download_count}
                         </span>
@@ -152,12 +173,9 @@ export default function PastYearPapers() {
 
                     {/* Main buttons */}
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flexShrink: 0 }}>
-                      {/* View — uses direct Cloudinary URL */}
+                      {/* View — free for papers */}
                       <button
-                        onClick={() => handleDownload(
-                          mainViewUrl,
-                          `${paper.title}-${paper.year}`, true
-                        )}
+                        onClick={() => handleDownload(mainViewUrl, `${paper.title}-${paper.year}`, true)}
                         className="btn btn-sm"
                         style={{ background: "var(--gray-100)", color: "var(--gray-700)", border: "none" }}
                         disabled={!mainViewUrl}
@@ -165,7 +183,7 @@ export default function PastYearPapers() {
                         <Eye size={13} /> View
                       </button>
 
-                      {/* Download — uses Railway auth endpoint */}
+                      {/* Download — login required */}
                       <button
                         onClick={() => handleDownload(
                           `${API_URL}/api/past-year-papers/${paper.id}/download/`,
@@ -230,6 +248,7 @@ export default function PastYearPapers() {
                           >
                             <FileCheck size={13} />
                             Solutions
+                            {!isAuthenticated && <Lock size={11} />}
                             <span style={{
                               background: tab === "solution" ? "#ECFDF5" : "var(--gray-100)",
                               color: tab === "solution" ? "var(--success)" : "var(--gray-500)",
@@ -248,38 +267,61 @@ export default function PastYearPapers() {
                           {files.map(file => (
                             <div key={file.id} style={{ display: "flex", gap: "0.25rem" }}>
 
-                              {/* View — direct Cloudinary URL */}
+                              {/* View button */}
                               <button
-                                onClick={() => handleDownload(
-                                  file.file,
-                                  `${filePrefix}-${file.page_number}`, true
-                                )}
+                                onClick={() => {
+                                  if (tab === "solution") {
+                                    handleSolutionView(file, filePrefix);
+                                  } else {
+                                    handleDownload(file.file, `${filePrefix}-${file.page_number}`, true);
+                                  }
+                                }}
                                 className="btn btn-sm"
                                 style={{
-                                  background: tab === "solution" ? "#ECFDF5" : "var(--gray-100)",
-                                  color: tab === "solution" ? "var(--success)" : "var(--gray-700)",
+                                  background: tab === "solution"
+                                    ? isAuthenticated ? "#ECFDF5" : "var(--gray-100)"
+                                    : "var(--gray-100)",
+                                  color: tab === "solution"
+                                    ? isAuthenticated ? "var(--success)" : "var(--gray-400)"
+                                    : "var(--gray-700)",
                                   border: "none", fontSize: "0.75rem", padding: "0.3rem 0.6rem"
                                 }}
                               >
-                                <Eye size={12} />
+                                {tab === "solution" && !isAuthenticated
+                                  ? <Lock size={12} />
+                                  : <Eye size={12} />
+                                }
                                 {tab === "paper" ? `Pg ${file.page_number}` : `Sol ${file.page_number}`}
                               </button>
 
-                              {/* Download — Railway auth endpoint */}
+                              {/* Download button */}
                               <button
-                                onClick={() => handleDownload(
-                                  `${API_URL}/api/${fileEndpoint}/${file.id}/download/`,
-                                  `${filePrefix}-${file.page_number}`, false
-                                )}
+                                onClick={() => {
+                                  if (tab === "solution") {
+                                    handleSolutionDownload(file, fileEndpoint, filePrefix);
+                                  } else {
+                                    handleDownload(
+                                      `${API_URL}/api/${fileEndpoint}/${file.id}/download/`,
+                                      `${filePrefix}-${file.page_number}`, false
+                                    );
+                                  }
+                                }}
                                 className="btn btn-sm"
                                 style={{
                                   background: "none",
-                                  color: tab === "solution" ? "var(--success)" : "var(--primary)",
-                                  border: `1px solid ${tab === "solution" ? "var(--success)" : "var(--primary)"}`,
+                                  color: tab === "solution"
+                                    ? isAuthenticated ? "var(--success)" : "var(--gray-400)"
+                                    : "var(--primary)",
+                                  border: `1px solid ${tab === "solution"
+                                    ? isAuthenticated ? "var(--success)" : "var(--gray-300)"
+                                    : "var(--primary)"}`,
                                   fontSize: "0.75rem", padding: "0.3rem 0.5rem"
                                 }}
                               >
-                                <Download size={12} />
+                                {tab === "solution" && !isAuthenticated
+                                  ? <Lock size={12} />
+                                  : <Download size={12} />
+                                }
                               </button>
                             </div>
                           ))}
@@ -288,6 +330,24 @@ export default function PastYearPapers() {
                         <p style={{ fontSize: "0.8rem", color: "var(--gray-400)" }}>
                           No {tab === "paper" ? "pages" : "solutions"} uploaded yet.
                         </p>
+                      )}
+
+                      {/* Solution login prompt */}
+                      {tab === "solution" && !isAuthenticated && (
+                        <div style={{
+                          marginTop: "0.75rem", padding: "0.75rem",
+                          background: "#ECFDF5", borderRadius: "var(--radius)",
+                          fontSize: "0.8rem", color: "var(--success)",
+                          display: "flex", alignItems: "center", gap: "0.5rem"
+                        }}>
+                          <Lock size={13} />
+                          <span>
+                            <Link to="/login" style={{ color: "var(--success)", fontWeight: 600 }}>
+                              Login
+                            </Link>{" "}
+                            to view and download solutions
+                          </span>
+                        </div>
                       )}
                     </>
                   )}
