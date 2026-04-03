@@ -34,8 +34,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # CORS
 CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='').split(',')
-
+CORS_ALLOWED_ORIGINS = [i.strip() for i in config('CORS_ALLOWED_ORIGINS', default='').split(',') if i.strip()]
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='').split(',')
 
 # REST Framework - JSON only in production
@@ -85,3 +84,5 @@ LOGGING = {
         },
     },
 }
+import logging
+logging.getLogger(__name__).warning(f"CORS_ALLOWED_ORIGINS = {CORS_ALLOWED_ORIGINS}")
