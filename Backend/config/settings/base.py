@@ -158,7 +158,8 @@ SIMPLE_JWT = {
 
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
-    default='https://notes-website-8age-q1rklvrej-ryu-cmyks-projects.vercel.app'
+     default='https://www.bcatutor.com'    
+    #default='https://notes-website-8age-q1rklvrej-ryu-cmyks-projects.vercel.app'
 ).split(',')
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ['DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT']
