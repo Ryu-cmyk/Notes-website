@@ -30,7 +30,7 @@ DATABASES = {
 
 # Static files with WhiteNoise
 MIDDLEWARE = ['whitenoise.middleware.WhiteNoiseMiddleware'] + MIDDLEWARE
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
 
 # CORS
 CORS_ALLOW_ALL_ORIGINS = True
