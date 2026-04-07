@@ -13,6 +13,7 @@ import PastYearPapers from "./pages/PastYearPapers.jsx";
 import Profile from "./pages/Profile.jsx";
 import Contact from "./pages/Contact.jsx";
 import PDFViewer from "./pages/PDFViewer.jsx";
+import { TermsOfService, PrivacyPolicy } from "./pages/TermsAndPrivacy";
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated } = useAuthStore();
@@ -36,6 +37,8 @@ export default function App() {
           <Route path="/subjects/:subjectId/past-year-papers" element={<PastYearPapers />} />
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
         </Routes>
       </main>
       <Footer />
