@@ -14,6 +14,7 @@ import Profile from "./pages/Profile.jsx";
 import Contact from "./pages/Contact.jsx";
 import PDFViewer from "./pages/PDFViewer.jsx";
 import { TermsOfService, PrivacyPolicy } from "./pages/TermsAndPrivacy";
+import About from "./pages/About";
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated } = useAuthStore();
@@ -39,6 +40,7 @@ export default function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/about" element={<About />} />
         </Routes>
       </main>
       <Footer />

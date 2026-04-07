@@ -16,8 +16,7 @@ export default function Register() {
 
   const onSubmit = async (data) => {
     try {
-      await registerUser({ email: data.email, first_name: data.first_name, last_name: data.last_name, password: data.password,password2:data.password2, phone_number: data.phone_number || undefined });
-      // auto login
+      await registerUser({ email: data.email, first_name: data.first_name, last_name: data.last_name, password: data.password, password2: data.password2, phone_number: data.phone_number || undefined });
       const res = await login({ email: data.email, password: data.password });
       const tokens = res.data;
       localStorage.setItem("access_token", tokens.access);
@@ -52,12 +51,12 @@ export default function Register() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
               <div className="form-group">
                 <label className="form-label">First Name</label>
-                <input className="form-input" placeholder="John" {...register("first_name", { required: "Required" })} />
+                <input className="form-input" placeholder="Ram" {...register("first_name", { required: "Required" })} />
                 {errors.first_name && <p style={{ color: "var(--danger)", fontSize: "0.8rem", marginTop: "0.3rem" }}>{errors.first_name.message}</p>}
               </div>
               <div className="form-group">
                 <label className="form-label">Last Name</label>
-                <input className="form-input" placeholder="Doe" {...register("last_name", { required: "Required" })} />
+                <input className="form-input" placeholder="poudel" {...register("last_name", { required: "Required" })} />
                 {errors.last_name && <p style={{ color: "var(--danger)", fontSize: "0.8rem", marginTop: "0.3rem" }}>{errors.last_name.message}</p>}
               </div>
             </div>
@@ -70,7 +69,8 @@ export default function Register() {
 
             <div className="form-group">
               <label className="form-label">Phone Number <span style={{ color: "var(--gray-400)", fontWeight: 400 }}>(Required)</span></label>
-              <input className="form-input" placeholder="+9779800000000" {...register("phone_number")} />
+              <input className="form-input" placeholder="+9779800000000" {...register("phone_number", { required: "Phone number is required" })} />
+              {errors.phone_number && <p style={{ color: "var(--danger)", fontSize: "0.8rem", marginTop: "0.3rem" }}>{errors.phone_number.message}</p>}
             </div>
 
             <div className="form-group">
@@ -91,8 +91,26 @@ export default function Register() {
               <label className="form-label">Confirm Password</label>
               <input className="form-input" type="password" placeholder="••••••••"
                 {...register("password2", { required: "Required", validate: v => v === password || "Passwords do not match" })} />
-              {errors.confirm_password && <p style={{ color: "var(--danger)", fontSize: "0.8rem", marginTop: "0.3rem" }}>{errors.confirm_password.message}</p>}
+              {errors.password2 && <p style={{ color: "var(--danger)", fontSize: "0.8rem", marginTop: "0.3rem" }}>{errors.password2.message}</p>}
             </div>
+
+            {/* Terms & Privacy */}
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "0.6rem", margin: "1rem 0" }}>
+              <input
+                type="checkbox"
+                id="terms"
+                style={{ marginTop: "3px", cursor: "pointer", accentColor: "var(--primary)", width: "15px", height: "15px", flexShrink: 0 }}
+                {...register("terms", { required: "You must agree to the terms to continue" })}
+              />
+              <label htmlFor="terms" style={{ fontSize: "0.85rem", color: "var(--gray-600)", cursor: "pointer", lineHeight: 1.5 }}>
+                I agree to the{" "}
+                <Link to="/terms" target="_blank" style={{ color: "var(--primary)", fontWeight: 500 }}>Terms of Service</Link>
+                {" "}and{" "}
+                <Link to="/privacy" target="_blank" style={{ color: "var(--primary)", fontWeight: 500 }}>Privacy Policy</Link>
+                , including the use of my name, email, and phone number to operate and improve the platform.
+              </label>
+            </div>
+            {errors.terms && <p style={{ color: "var(--danger)", fontSize: "0.8rem", marginTop: "-0.5rem", marginBottom: "0.75rem" }}>{errors.terms.message}</p>}
 
             <button type="submit" className="btn btn-primary" disabled={isSubmitting}
               style={{ width: "100%", justifyContent: "center", padding: "0.75rem", marginTop: "0.5rem" }}>

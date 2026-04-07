@@ -1,4 +1,4 @@
-import { Mail, Phone, MapPin, QrCode, ExternalLink } from "lucide-react";
+import { Mail, Phone, MapPin, ExternalLink } from "lucide-react";
 import qr from "../assets/qr.jpeg";
 
 export default function Contact() {
@@ -14,7 +14,7 @@ export default function Contact() {
     {
       label: "Instagram",
       initial: "in",
-      handle: "@bcatutor",
+      handle: "@bca_tutor",
       url: "https://www.instagram.com/bca_tutor?igsh=b2N0bmJ3dXczajB6",
       color: "#E1306C",
       bg: "#FFF0F5",
@@ -39,6 +39,19 @@ export default function Contact() {
 
   return (
     <div className="page">
+      <style>{`
+        .contact-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.5rem;
+        }
+        @media (max-width: 600px) {
+          .contact-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+
       <div className="container" style={{ maxWidth: "800px" }}>
 
         {/* Header */}
@@ -49,11 +62,11 @@ export default function Contact() {
           </p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+        <div className="contact-grid">
 
           {/* Left — Social links */}
           <div>
-            <h2 style={{ fontSize: "1rem", fontFamily: "DM Sans, sans-serif", fontWeight: 600, color: "var(--gray-700)", marginBottom: "1rem" }}>
+            <h2 style={{ fontSize: "1rem", fontWeight: 600, color: "var(--gray-700)", marginBottom: "1rem" }}>
               Find us on
             </h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
@@ -96,7 +109,7 @@ export default function Contact() {
 
             {/* QR Code */}
             <div className="card" style={{ padding: "1.5rem", textAlign: "center" }}>
-              <h2 style={{ fontSize: "1rem", fontFamily: "DM Sans, sans-serif", fontWeight: 600, color: "var(--gray-700)", marginBottom: "1rem" }}>
+              <h2 style={{ fontSize: "1rem", fontWeight: 600, color: "var(--gray-700)", marginBottom: "1rem" }}>
                 Support Us
               </h2>
               <div style={{
@@ -115,29 +128,29 @@ export default function Contact() {
                 />
               </div>
               <p style={{ fontSize: "0.8rem", color: "var(--gray-400)", marginTop: "0.75rem" }}>
-                Scan For Donatiom
+                Scan to Donate
               </p>
             </div>
 
             {/* Support info */}
             <div className="card" style={{ padding: "1.25rem" }}>
-              <h2 style={{ fontSize: "1rem", fontFamily: "DM Sans, sans-serif", fontWeight: 600, color: "var(--gray-700)", marginBottom: "1rem" }}>
+              <h2 style={{ fontSize: "1rem", fontWeight: 600, color: "var(--gray-700)", marginBottom: "1rem" }}>
                 Support
               </h2>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                  <div style={{ background: "#EFF6FF", borderRadius: "8px", padding: "7px", display: "flex" }}>
+                  <div style={{ background: "#EFF6FF", borderRadius: "8px", padding: "7px", display: "flex", flexShrink: 0 }}>
                     <Mail size={16} color="var(--primary)" />
                   </div>
-                  <div>
+                  <div style={{ minWidth: 0 }}>
                     <p style={{ fontSize: "0.75rem", color: "var(--gray-400)" }}>Email Support</p>
-                    <a href="mailto:bcatutor@gmail.com" style={{ fontSize: "0.875rem", color: "var(--primary)", fontWeight: 500 }}>
+                    <a href="mailto:bcatutor@gmail.com" style={{ fontSize: "0.875rem", color: "var(--primary)", fontWeight: 500, wordBreak: "break-all" }}>
                       bcatutor@gmail.com
                     </a>
                   </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                  <div style={{ background: "#ECFDF5", borderRadius: "8px", padding: "7px", display: "flex" }}>
+                  <div style={{ background: "#ECFDF5", borderRadius: "8px", padding: "7px", display: "flex", flexShrink: 0 }}>
                     <Phone size={16} color="#059669" />
                   </div>
                   <div>
@@ -146,7 +159,7 @@ export default function Contact() {
                   </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                  <div style={{ background: "#FFFBEB", borderRadius: "8px", padding: "7px", display: "flex" }}>
+                  <div style={{ background: "#FFFBEB", borderRadius: "8px", padding: "7px", display: "flex", flexShrink: 0 }}>
                     <MapPin size={16} color="#D97706" />
                   </div>
                   <div>
