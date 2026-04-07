@@ -107,7 +107,7 @@ export default function Register() {
                 <Link to="/terms" target="_blank" style={{ color: "var(--primary)", fontWeight: 500 }}>Terms of Service</Link>
                 {" "}and{" "}
                 <Link to="/privacy" target="_blank" style={{ color: "var(--primary)", fontWeight: 500 }}>Privacy Policy</Link>
-                , including the use of my name, email, and phone number to operate and improve the platform.
+                
               </label>
             </div>
             {errors.terms && <p style={{ color: "var(--danger)", fontSize: "0.8rem", marginTop: "-0.5rem", marginBottom: "0.75rem" }}>{errors.terms.message}</p>}
