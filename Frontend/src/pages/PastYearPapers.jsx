@@ -25,24 +25,40 @@ export default function PastYearPapers() {
   const getTab = (paperId) => activeTab[paperId] || "paper";
   const setTab = (paperId, tab) => setActiveTab(prev => ({ ...prev, [paperId]: tab }));
 
+  // Open viewer with full page list for prev/next navigation
+  const openViewer = (files, startIndex = 0, prefix = "Page") => {
+    if (!files || files.length === 0) {
+      toast.error("File not available");
+      return;
+    }
+    const pages = files.map((f) => ({
+      url: f.file,
+      name: `${prefix} ${f.page_number}`
+    }));
+    const params = new URLSearchParams({
+      url: pages[startIndex].url,
+      name: pages[startIndex].name,
+      pages: encodeURIComponent(JSON.stringify(pages)),
+      index: startIndex,
+    });
+    window.open(`/view?${params.toString()}`, "_blank");
+  };
+
   const handleDownload = async (url, filename, view = false) => {
     if (!url) {
       toast.error("File not available");
       return;
     }
-
     if (!isAuthenticated && !view) {
       toast.error("Please login to download files");
       return;
     }
-
     try {
       if (view) {
         const viewerUrl = `/view?url=${encodeURIComponent(url)}&name=${encodeURIComponent(filename)}`;
         window.open(viewerUrl, "_blank");
         return;
       }
-
       const token = localStorage.getItem("access_token");
       const response = await fetch(url, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -61,12 +77,12 @@ export default function PastYearPapers() {
     }
   };
 
-  const handleSolutionView = (file, filePrefix) => {
+  const handleSolutionView = (files, startIndex) => {
     if (!isAuthenticated) {
       toast.error("Please login to view solutions");
       return;
     }
-    handleDownload(file.file, `${filePrefix}-${file.page_number}`, true);
+    openViewer(files, startIndex, "Solution");
   };
 
   const handleSolutionDownload = (file, fileEndpoint, filePrefix) => {
@@ -109,9 +125,7 @@ export default function PastYearPapers() {
             <Lock size={16} />
             <span>
               You can view papers freely.{" "}
-              <Link to="/login" style={{ color: "var(--primary)", fontWeight: 500 }}>
-                Login
-              </Link>{" "}
+              <Link to="/login" style={{ color: "var(--primary)", fontWeight: 500 }}>Login</Link>{" "}
               to view solutions and download files.
             </span>
           </div>
@@ -135,8 +149,6 @@ export default function PastYearPapers() {
               const fileEndpoint = tab === "paper"
                 ? "past-year-paper-files"
                 : "past-year-paper-solutions";
-
-              const mainViewUrl = paper.file || paper.paper_files?.[0]?.file;
 
               return (
                 <div key={paper.id} className="card" style={{ padding: "1.25rem" }}>
@@ -173,17 +185,18 @@ export default function PastYearPapers() {
 
                     {/* Main buttons */}
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flexShrink: 0 }}>
-                      {/* View — free for papers */}
                       <button
-                        onClick={() => handleDownload(mainViewUrl, `${paper.title}-${paper.year}`, true)}
+                        onClick={() => paper.paper_files?.length > 0
+                          ? openViewer(paper.paper_files, 0, "Page")
+                          : handleDownload(paper.file, `${paper.title}-${paper.year}`, true)
+                        }
                         className="btn btn-sm"
                         style={{ background: "var(--gray-100)", color: "var(--gray-700)", border: "none" }}
-                        disabled={!mainViewUrl}
+                        disabled={!paper.file && !paper.paper_files?.length}
                       >
                         <Eye size={13} /> View
                       </button>
 
-                      {/* Download — login required */}
                       <button
                         onClick={() => handleDownload(
                           `${API_URL}/api/past-year-papers/${paper.id}/download/`,
@@ -264,16 +277,16 @@ export default function PastYearPapers() {
                       {/* File buttons */}
                       {files?.length > 0 ? (
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-                          {files.map(file => (
+                          {files.map((file, index) => (
                             <div key={file.id} style={{ display: "flex", gap: "0.25rem" }}>
 
-                              {/* View button */}
+                              {/* View button — opens viewer with all pages */}
                               <button
                                 onClick={() => {
                                   if (tab === "solution") {
-                                    handleSolutionView(file, filePrefix);
+                                    handleSolutionView(paper.solution_files, index);
                                   } else {
-                                    handleDownload(file.file, `${filePrefix}-${file.page_number}`, true);
+                                    openViewer(paper.paper_files, index, "Page");
                                   }
                                 }}
                                 className="btn btn-sm"
@@ -342,9 +355,7 @@ export default function PastYearPapers() {
                         }}>
                           <Lock size={13} />
                           <span>
-                            <Link to="/login" style={{ color: "var(--success)", fontWeight: 600 }}>
-                              Login
-                            </Link>{" "}
+                            <Link to="/login" style={{ color: "var(--success)", fontWeight: 600 }}>Login</Link>{" "}
                             to view and download solutions
                           </span>
                         </div>
