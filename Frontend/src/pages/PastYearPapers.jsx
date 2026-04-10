@@ -22,43 +22,19 @@ export default function PastYearPapers() {
     queryFn: () => getPastYearPapers({ subject: subjectId }).then(r => r.data),
   });
 
-  const getTab = (paperId) => activeTab[paperId] || "paper";
+  const getTab = (paperId) => activeTab[paperId] || "question";
   const setTab = (paperId, tab) => setActiveTab(prev => ({ ...prev, [paperId]: tab }));
 
-  // Open viewer with full page list for prev/next navigation
-  const openViewer = (files, startIndex = 0, prefix = "Page") => {
-    if (!files || files.length === 0) {
-      toast.error("File not available");
-      return;
-    }
-    const pages = files.map((f) => ({
-      url: f.file,
-      name: `${prefix} ${f.page_number}`
-    }));
-    const params = new URLSearchParams({
-      url: pages[startIndex].url,
-      name: pages[startIndex].name,
-      pages: encodeURIComponent(JSON.stringify(pages)),
-      index: startIndex,
-    });
-    window.open(`/view?${params.toString()}`, "_blank");
+  const openViewer = (url, name) => {
+    if (!url) { toast.error("File not available"); return; }
+    const viewerUrl = `/view?url=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}`;
+    window.open(viewerUrl, "_blank");
   };
 
-  const handleDownload = async (url, filename, view = false) => {
-    if (!url) {
-      toast.error("File not available");
-      return;
-    }
-    if (!isAuthenticated && !view) {
-      toast.error("Please login to download files");
-      return;
-    }
+  const handleDownload = async (url, filename) => {
+    if (!url) { toast.error("File not available"); return; }
+    if (!isAuthenticated) { toast.error("Please login to download"); return; }
     try {
-      if (view) {
-        const viewerUrl = `/view?url=${encodeURIComponent(url)}&name=${encodeURIComponent(filename)}`;
-        window.open(viewerUrl, "_blank");
-        return;
-      }
       const token = localStorage.getItem("access_token");
       const response = await fetch(url, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -73,28 +49,14 @@ export default function PastYearPapers() {
       window.URL.revokeObjectURL(objectUrl);
       toast.success("Download started!");
     } catch {
-      toast.error("Failed to load file");
+      toast.error("Failed to download file");
     }
   };
 
-  const handleSolutionView = (files, startIndex) => {
-    if (!isAuthenticated) {
-      toast.error("Please login to view solutions");
-      return;
-    }
-    openViewer(files, startIndex, "Solution");
-  };
-
-  const handleSolutionDownload = (file, fileEndpoint, filePrefix) => {
-    if (!isAuthenticated) {
-      toast.error("Please login to download solutions");
-      return;
-    }
-    handleDownload(
-      `${API_URL}/api/${fileEndpoint}/${file.id}/download/`,
-      `${filePrefix}-${file.page_number}`,
-      false
-    );
+  const getFiles = (paper) => {
+    const questionFile = paper.file || paper.paper_files?.[0]?.file;
+    const solutionFile = paper.solution_files?.[0]?.file;
+    return { questionFile, solutionFile };
   };
 
   return (
@@ -124,9 +86,9 @@ export default function PastYearPapers() {
           }}>
             <Lock size={16} />
             <span>
-              You can view papers freely.{" "}
+              View papers freely.{" "}
               <Link to="/login" style={{ color: "var(--primary)", fontWeight: 500 }}>Login</Link>{" "}
-              to view solutions and download files.
+              to view solutions and download.
             </span>
           </div>
         )}
@@ -143,225 +105,120 @@ export default function PastYearPapers() {
           <div className="grid-2">
             {data?.results?.map(paper => {
               const tab = getTab(paper.id);
-              const hasSolution = paper.solution_files?.length > 0;
-              const files = tab === "paper" ? paper.paper_files : paper.solution_files;
-              const filePrefix = tab === "paper" ? "page" : "solution";
-              const fileEndpoint = tab === "paper"
-                ? "past-year-paper-files"
-                : "past-year-paper-solutions";
+              const { questionFile, solutionFile } = getFiles(paper);
+              const hasSolution = !!solutionFile || paper.solution_files?.length > 0;
+              const activeFile = tab === "question" ? questionFile : solutionFile;
+              const activeName = `${paper.title} ${paper.year} — ${tab === "question" ? "Question" : "Solution"}`;
 
               return (
                 <div key={paper.id} className="card" style={{ padding: "1.25rem" }}>
 
-                  {/* Header row */}
-                  <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start", marginBottom: "1rem" }}>
+                  {/* Top row */}
+                  <div style={{ display: "flex", gap: "0.875rem", alignItems: "flex-start", marginBottom: "1rem" }}>
                     <div style={{
                       background: "var(--primary-light)", borderRadius: "8px",
-                      padding: "10px", flexShrink: 0
+                      padding: "9px", flexShrink: 0
                     }}>
-                      <FileCheck size={20} color="var(--primary)" />
+                      <FileCheck size={18} color="var(--primary)" />
                     </div>
-
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <h3 style={{
-                        fontSize: "0.95rem", fontWeight: 600,
-                        color: "var(--gray-900)", fontFamily: "DM Sans, sans-serif",
-                        marginBottom: "0.4rem"
+                        fontSize: "0.925rem", fontWeight: 600,
+                        color: "var(--gray-900)", marginBottom: "0.35rem",
+                        fontFamily: "DM Sans, sans-serif"
                       }}>
                         {paper.title}
                       </h3>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
                         <span className="badge badge-blue">{paper.year}</span>
                         {hasSolution && (
                           <span className="badge badge-green">
-                            {isAuthenticated ? "Solution available" : "🔒 Solution available"}
+                            {isAuthenticated ? "✓ Solution" : "🔒 Solution"}
                           </span>
                         )}
-                        <span style={{ fontSize: "0.75rem", color: "var(--gray-400)", display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                          <Eye size={12} /> {paper.download_count}
+                        <span style={{ fontSize: "0.73rem", color: "var(--gray-400)", display: "flex", alignItems: "center", gap: "0.2rem" }}>
+                          <Eye size={11} /> {paper.download_count}
                         </span>
                       </div>
                     </div>
-
-                    {/* Main buttons */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flexShrink: 0 }}>
-                      <button
-                        onClick={() => paper.paper_files?.length > 0
-                          ? openViewer(paper.paper_files, 0, "Page")
-                          : handleDownload(paper.file, `${paper.title}-${paper.year}`, true)
-                        }
-                        className="btn btn-sm"
-                        style={{ background: "var(--gray-100)", color: "var(--gray-700)", border: "none" }}
-                        disabled={!paper.file && !paper.paper_files?.length}
-                      >
-                        <Eye size={13} /> View
-                      </button>
-
-                      <button
-                        onClick={() => handleDownload(
-                          `${API_URL}/api/past-year-papers/${paper.id}/download/`,
-                          `${paper.title}-${paper.year}`, false
-                        )}
-                        className="btn btn-sm btn-primary"
-                        style={{ border: "none" }}
-                      >
-                        {isAuthenticated ? <Download size={13} /> : <Lock size={13} />}
-                        {isAuthenticated ? "Download" : "Login"}
-                      </button>
-                    </div>
                   </div>
 
-                  {/* Tab switcher */}
-                  {(paper.paper_files?.length > 0 || hasSolution) && (
-                    <>
-                      <div style={{
-                        display: "flex", borderBottom: "1px solid var(--gray-200)",
-                        marginBottom: "0.75rem"
-                      }}>
-                        <button
-                          onClick={() => setTab(paper.id, "paper")}
-                          style={{
-                            padding: "0.5rem 0.9rem",
-                            fontSize: "0.8rem", fontWeight: 500,
-                            fontFamily: "DM Sans, sans-serif",
-                            background: "none", border: "none", cursor: "pointer",
-                            borderBottom: tab === "paper" ? "2px solid var(--primary)" : "2px solid transparent",
-                            color: tab === "paper" ? "var(--primary)" : "var(--gray-400)",
-                            display: "flex", alignItems: "center", gap: "0.35rem",
-                            transition: "all 0.15s",
-                          }}
-                        >
-                          <BookOpen size={13} />
-                          Pages
-                          {paper.paper_files?.length > 0 && (
-                            <span style={{
-                              background: tab === "paper" ? "var(--primary-light)" : "var(--gray-100)",
-                              color: tab === "paper" ? "var(--primary)" : "var(--gray-500)",
-                              borderRadius: "999px", padding: "0 0.4rem",
-                              fontSize: "0.7rem", fontWeight: 600,
-                            }}>
-                              {paper.paper_files.length}
-                            </span>
-                          )}
-                        </button>
+                  {/* Question / Solution pill toggle */}
+                  <div style={{
+                    display: "flex", background: "var(--gray-100)",
+                    borderRadius: "8px", padding: "3px", marginBottom: "1rem"
+                  }}>
+                    <button
+                      onClick={() => setTab(paper.id, "question")}
+                      style={{
+                        flex: 1, padding: "0.45rem 0.5rem",
+                        borderRadius: "6px", border: "none", cursor: "pointer",
+                        fontSize: "0.8rem", fontWeight: 500,
+                        fontFamily: "DM Sans, sans-serif",
+                        background: tab === "question" ? "white" : "transparent",
+                        color: tab === "question" ? "var(--gray-900)" : "var(--gray-400)",
+                        boxShadow: tab === "question" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                        transition: "all 0.15s",
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: "0.35rem"
+                      }}
+                    >
+                      <BookOpen size={13} /> Question
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (!isAuthenticated) {
+                          toast.error("Please login to view solutions");
+                          return;
+                        }
+                        if (!hasSolution) return;
+                        setTab(paper.id, "solution");
+                      }}
+                      style={{
+                        flex: 1, padding: "0.45rem 0.5rem",
+                        borderRadius: "6px", border: "none",
+                        cursor: hasSolution ? "pointer" : "not-allowed",
+                        fontSize: "0.8rem", fontWeight: 500,
+                        fontFamily: "DM Sans, sans-serif",
+                        background: tab === "solution" ? "white" : "transparent",
+                        color: tab === "solution" ? "var(--success)" : hasSolution ? "var(--gray-400)" : "var(--gray-300)",
+                        boxShadow: tab === "solution" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                        transition: "all 0.15s",
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: "0.35rem",
+                        opacity: hasSolution ? 1 : 0.5
+                      }}
+                    >
+                      <FileCheck size={13} />
+                      Solution
+                      {!isAuthenticated && hasSolution && <Lock size={11} />}
+                      {!hasSolution && <span style={{ fontSize: "0.7rem" }}>(N/A)</span>}
+                    </button>
+                  </div>
 
-                        {hasSolution && (
-                          <button
-                            onClick={() => setTab(paper.id, "solution")}
-                            style={{
-                              padding: "0.5rem 0.9rem",
-                              fontSize: "0.8rem", fontWeight: 500,
-                              fontFamily: "DM Sans, sans-serif",
-                              background: "none", border: "none", cursor: "pointer",
-                              borderBottom: tab === "solution" ? "2px solid var(--success)" : "2px solid transparent",
-                              color: tab === "solution" ? "var(--success)" : "var(--gray-400)",
-                              display: "flex", alignItems: "center", gap: "0.35rem",
-                              transition: "all 0.15s",
-                            }}
-                          >
-                            <FileCheck size={13} />
-                            Solutions
-                            {!isAuthenticated && <Lock size={11} />}
-                            <span style={{
-                              background: tab === "solution" ? "#ECFDF5" : "var(--gray-100)",
-                              color: tab === "solution" ? "var(--success)" : "var(--gray-500)",
-                              borderRadius: "999px", padding: "0 0.4rem",
-                              fontSize: "0.7rem", fontWeight: 600,
-                            }}>
-                              {paper.solution_files.length}
-                            </span>
-                          </button>
-                        )}
-                      </div>
-
-                      {/* File buttons */}
-                      {files?.length > 0 ? (
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-                          {files.map((file, index) => (
-                            <div key={file.id} style={{ display: "flex", gap: "0.25rem" }}>
-
-                              {/* View button — opens viewer with all pages */}
-                              <button
-                                onClick={() => {
-                                  if (tab === "solution") {
-                                    handleSolutionView(paper.solution_files, index);
-                                  } else {
-                                    openViewer(paper.paper_files, index, "Page");
-                                  }
-                                }}
-                                className="btn btn-sm"
-                                style={{
-                                  background: tab === "solution"
-                                    ? isAuthenticated ? "#ECFDF5" : "var(--gray-100)"
-                                    : "var(--gray-100)",
-                                  color: tab === "solution"
-                                    ? isAuthenticated ? "var(--success)" : "var(--gray-400)"
-                                    : "var(--gray-700)",
-                                  border: "none", fontSize: "0.75rem", padding: "0.3rem 0.6rem"
-                                }}
-                              >
-                                {tab === "solution" && !isAuthenticated
-                                  ? <Lock size={12} />
-                                  : <Eye size={12} />
-                                }
-                                {tab === "paper" ? `Pg ${file.page_number}` : `Sol ${file.page_number}`}
-                              </button>
-
-                              {/* Download button */}
-                              <button
-                                onClick={() => {
-                                  if (tab === "solution") {
-                                    handleSolutionDownload(file, fileEndpoint, filePrefix);
-                                  } else {
-                                    handleDownload(
-                                      `${API_URL}/api/${fileEndpoint}/${file.id}/download/`,
-                                      `${filePrefix}-${file.page_number}`, false
-                                    );
-                                  }
-                                }}
-                                className="btn btn-sm"
-                                style={{
-                                  background: "none",
-                                  color: tab === "solution"
-                                    ? isAuthenticated ? "var(--success)" : "var(--gray-400)"
-                                    : "var(--primary)",
-                                  border: `1px solid ${tab === "solution"
-                                    ? isAuthenticated ? "var(--success)" : "var(--gray-300)"
-                                    : "var(--primary)"}`,
-                                  fontSize: "0.75rem", padding: "0.3rem 0.5rem"
-                                }}
-                              >
-                                {tab === "solution" && !isAuthenticated
-                                  ? <Lock size={12} />
-                                  : <Download size={12} />
-                                }
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p style={{ fontSize: "0.8rem", color: "var(--gray-400)" }}>
-                          No {tab === "paper" ? "pages" : "solutions"} uploaded yet.
-                        </p>
+                  {/* View + Download buttons */}
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <button
+                      onClick={() => openViewer(activeFile, activeName)}
+                      className="btn btn-sm"
+                      style={{
+                        flex: 1, justifyContent: "center",
+                        background: "var(--gray-100)", color: "var(--gray-700)", border: "none"
+                      }}
+                      disabled={!activeFile}
+                    >
+                      <Eye size={13} /> View
+                    </button>
+                    <button
+                      onClick={() => handleDownload(
+                        `${API_URL}/api/past-year-papers/${paper.id}/download/`,
+                        `${paper.title}-${paper.year}`
                       )}
-
-                      {/* Solution login prompt */}
-                      {tab === "solution" && !isAuthenticated && (
-                        <div style={{
-                          marginTop: "0.75rem", padding: "0.75rem",
-                          background: "#ECFDF5", borderRadius: "var(--radius)",
-                          fontSize: "0.8rem", color: "var(--success)",
-                          display: "flex", alignItems: "center", gap: "0.5rem"
-                        }}>
-                          <Lock size={13} />
-                          <span>
-                            <Link to="/login" style={{ color: "var(--success)", fontWeight: 600 }}>Login</Link>{" "}
-                            to view and download solutions
-                          </span>
-                        </div>
-                      )}
-                    </>
-                  )}
+                      className="btn btn-sm btn-primary"
+                      style={{ flex: 1, justifyContent: "center", border: "none" }}
+                    >
+                      {isAuthenticated ? <Download size={13} /> : <Lock size={13} />}
+                      {isAuthenticated ? "Download" : "Login"}
+                    </button>
+                  </div>
 
                 </div>
               );
