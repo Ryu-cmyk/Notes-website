@@ -30,7 +30,7 @@ export default function Contact() {
     {
       label: "Email",
       initial: "@",
-      handle: "bcatutor@gmail.com",
+      handle: "info@bcatutor.com",
       url: "mailto:bcatutor@gmail.com",
       color: "#059669",
       bg: "#ECFDF5",
@@ -144,8 +144,8 @@ export default function Contact() {
                   </div>
                   <div style={{ minWidth: 0 }}>
                     <p style={{ fontSize: "0.75rem", color: "var(--gray-400)" }}>Email Support</p>
-                    <a href="mailto:bcatutor@gmail.com" style={{ fontSize: "0.875rem", color: "var(--primary)", fontWeight: 500, wordBreak: "break-all" }}>
-                      bcatutor@gmail.com
+                    <a href="mailto:info@bcatutor.com" style={{ fontSize: "0.875rem", color: "var(--primary)", fontWeight: 500, wordBreak: "break-all" }}>
+                      info@bcatutor.com
                     </a>
                   </div>
                 </div>
