@@ -27,8 +27,14 @@ INSTALLED_APPS = [
 ]
 
 # Supabase S3 Storage
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 AWS_ACCESS_KEY_ID = config('SUPABASE_ACCESS_KEY')
 AWS_SECRET_ACCESS_KEY = config('SUPABASE_SECRET_KEY')
 AWS_STORAGE_BUCKET_NAME = config('SUPABASE_BUCKET', default='media')
@@ -40,8 +46,8 @@ AWS_S3_REGION_NAME = config('SUPABASE_REGION', default='ap-southeast-1')
 AWS_S3_CUSTOM_DOMAIN = 'evfauchtqgilsnyrrifw.supabase.co/storage/v1/object/public/media'
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -168,45 +174,58 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800
 FILE_UPLOAD_PERMISSIONS = 0o644
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
+LOGS_DIR = BASE_DIR / 'logs'
+ 
+def get_logging_config(include_file=False):
+    handlers = {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
-        'file': {
+    }
+    active_handlers = ['console']
+ 
+    if include_file:
+        os.makedirs(LOGS_DIR, exist_ok=True)
+        handlers['file'] = {
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR / 'logs' / 'debug.log',
+            'filename': LOGS_DIR / 'debug.log',
             'maxBytes': 1024 * 1024 * 10,
             'backupCount': 5,
             'formatter': 'verbose',
+        }
+        active_handlers = ['console', 'file']
+ 
+    return {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '{levelname} {asctime} {module} {message}',
+                'style': '{',
+            },
         },
-    },
-    'root': {
-        'handlers': ['console', 'file'],
-        'level': 'INFO',
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console', 'file'],
+        'handlers': handlers,
+        'root': {
+            'handlers': active_handlers,
             'level': 'INFO',
-            'propagate': False,
         },
-        'apps': {
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
-            'propagate': False,
+        'loggers': {
+            'django': {
+                'handlers': active_handlers,
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'apps': {
+                'handlers': active_handlers,
+                'level': 'DEBUG',
+                'propagate': False,
+            },
         },
-    },
-}
+    }
+ 
+# Default: console only (safe for Railway/Vercel/any cloud)
+LOGGING = get_logging_config(include_file=False)
 
 JAZZMIN_SETTINGS = {
     "site_title": "Notes Portal Admin",

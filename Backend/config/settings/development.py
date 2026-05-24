@@ -21,10 +21,12 @@ if DATABASE_URL:
         'default': dj_database_url.config(default=DATABASE_URL)
     }'''
 # Override secret key from Railway environment
-SECRET_KEY = os.environ.get('SECRET_KEY')
+#SECRET_KEY = os.environ.get('SECRET_KEY')
 
 #local host
 #SECRET_KEY = config('SECRET_KEY')
+
+SECRET_KEY = config('SECRET_KEY')
 
 # Add browsable API in development
 REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = [

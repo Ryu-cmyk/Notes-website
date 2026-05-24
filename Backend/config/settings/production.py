@@ -1,6 +1,10 @@
 from .base import *
 import dj_database_url
 from decouple import config
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 DEBUG = False
 
