@@ -30,9 +30,10 @@ DATABASES = {
 # WhiteNoise — insert after SecurityMiddleware, inheriting base MIDDLEWARE
 MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
-# Override staticfiles backend only (default stays as S3)
+# CompressedStaticFilesStorage: gzip/brotli compression without strict
+# manifest fingerprinting, so missing .map files don't cause build failures.
 STORAGES['staticfiles'] = {
-    'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
 }
 
 # CORS
