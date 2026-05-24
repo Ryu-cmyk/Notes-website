@@ -1,58 +1,54 @@
 from .base import *
 import dj_database_url
 from decouple import config
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 DEBUG = False
 
-# Hosts
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
 
-# Security Settings
+# Security
 SECURE_SSL_REDIRECT = False
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_HSTS_SECONDS = 300  # 5 minutes — increase to 31536000 once HTTPS is confirmed working
+SECURE_HSTS_SECONDS = 300
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 X_FRAME_OPTIONS = 'DENY'
 
-# Secret Key
 SECRET_KEY = config('SECRET_KEY')
 
-# Database (Supabase via DATABASE_URL)
+# Database
 DATABASES = {
     'default': dj_database_url.config(
         default=config('DATABASE_URL')
     )
 }
 
-# Static files with WhiteNoise
-MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
-STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
+# WhiteNoise — insert after SecurityMiddleware, inheriting base MIDDLEWARE
+MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+
+# Override staticfiles backend only (default stays as S3)
+STORAGES['staticfiles'] = {
+    'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+}
 
 # CORS
 CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = [i.strip() for i in config('CORS_ALLOWED_ORIGINS', default='').split(',') if i.strip()]
-CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='').split(',')
+CORS_ALLOWED_ORIGINS = [
+    i.strip()
+    for i in config('CORS_ALLOWED_ORIGINS', default='').split(',')
+    if i.strip()
+]
+CSRF_TRUSTED_ORIGINS = [
+    i.strip()
+    for i in config('CSRF_TRUSTED_ORIGINS', default='').split(',')
+    if i.strip()
+]
 
-# REST Framework - JSON only in production
+# REST Framework - JSON only
 REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = [
     'rest_framework.renderers.JSONRenderer',
 ]
